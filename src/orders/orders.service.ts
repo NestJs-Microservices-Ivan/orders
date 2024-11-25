@@ -9,12 +9,18 @@ export class OrdersService {
   }
 
   findAll() {
-    return `This action returns all orders`;
+    return `This action returns all orders in Microservice`;
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} order`;
+    return `This action returns a #${id} order in Microservice OKKKK`;
   }
 
-  changeStatus(){}
+  update(id: number, updateOrderDto: UpdateOrderDto) {
+    return `This action updates a #${id} order`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} order`;
+  }
 }
