@@ -4,6 +4,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PaginationDto } from './common/pagination.dto';
+import { StatusDto } from './dto/status.dto';
 
 @Controller()
 export class OrdersController {
@@ -25,9 +26,9 @@ export class OrdersController {
   }
 
 
-  @MessagePattern('updateOrder')
-  update(@Payload() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(updateOrderDto.id, updateOrderDto);
+  @MessagePattern('changeStatus')
+  patch(@Payload() statusDto: StatusDto) {
+    return this.ordersService.update(statusDto);
   }
 
   @MessagePattern('removeOrder')
