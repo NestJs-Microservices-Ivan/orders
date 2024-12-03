@@ -13,7 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum orderStatus {
   CANCELLED
   PENDING
@@ -21,15 +20,26 @@ enum orderStatus {
 }
 
 model orders {
-  id             String @id @default(uuid())
-  totalAmount    Float
-  totalItems     Int
+  id          String @id @default(uuid())
+  totalAmount Float
+  totalItems  Int
 
-  status         orderStatus
-  paid           Boolean @default(false)
-  paidAt         DateTime?
+  status orderStatus @default(PENDING)
+  paid   Boolean     @default(false)
+  paidAt DateTime?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
+  orderItems OrderItems[]
+}
+
+model OrderItems {
+  id        String @id @default(uuid())
+  productId String
+  price     Float
+  quantity  Int
+
+  orders   orders? @relation(fields: [ordersId], references: [id])
+  ordersId String?
 }
