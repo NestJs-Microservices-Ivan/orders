@@ -1,30 +1,14 @@
-import { IsBoolean, IsDate, IsEnum, IsNumber, IsPositive, Min } from "class-validator";
+import { ArrayMinSize, IsArray, IsBoolean, IsDate, IsEnum, IsNumber, IsPositive, Min, MinLength, ValidateNested } from "class-validator";
 
+import { OrderItems } from "./order-items.dto";
 import { Type } from "class-transformer";
-import { orderStatus } from "@prisma/client";
-import { orderStatusList } from "../enum/orderStatus.enum";
 
 export class CreateOrderDto {
 
-    @Type(() => Number)
-    @IsNumber()
-    @Min(1)
-    @IsPositive()
-    totalAmount: number;
-
-    @Type(() => Number)
-    @IsNumber()
-    @Min(1)
-    @IsPositive()
-    totalItems: number;
-
-    @IsEnum(orderStatusList,{
-            message: 'some of these statuses do not exist in the order status'    
-        }
-    )
-    status: orderStatus
-
-    @IsBoolean()
-    paid: boolean = false
+    @IsArray()
+    @ArrayMinSize(1)
+    @ValidateNested({each:true})
+    @Type(() => OrderItems)
+    items: OrderItems[]
 
 }

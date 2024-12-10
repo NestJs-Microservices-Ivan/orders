@@ -1,12 +1,13 @@
-import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { date, number } from 'joi';
+import { HttpStatus, Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaginationDto } from './common/pagination.dto';
 import { PrismaClient } from '@prisma/client';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { StatusDto } from './dto/status.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { PRODUCTS_MICROSERVICES } from 'src/config/services';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService extends PrismaClient implements OnModuleInit {
@@ -18,12 +19,47 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
       this.logger.log('Orders Database connected')
   }
 
+  constructor(
+    @Inject(PRODUCTS_MICROSERVICES) private readonly productsClient: ClientProxy
+  ){
+    super()
+  }
+  
   async create(createOrderDto: CreateOrderDto) {
 
-    
-    return this.orders.create({
-      data: createOrderDto
-    })
+    try {
+      const productsIds =  createOrderDto.items.map((its) => its.productId)
+      const products: any[] = await firstValueFrom(
+        this.productsClient.send({cmd:"validate_product"},{productsIds})
+      )
+
+      const totalAmount = createOrderDto.items.reduce((acc,orderItem) => {
+        const price = products.find((prod) => prod.id === orderItem.productId).price
+        return price * orderItem.quantity
+      },0)
+
+      const totalItems = createOrderDto.items.reduce((acc,orderItem) => {
+        return acc + orderItem.quantity
+      },0)
+
+
+      const order = await this.orders.create({
+        data:{
+          totalAmount:totalAmount,
+          totalItems:totalItems,
+          orderItems:{
+            createMany:{
+              data:[]
+            }
+          }
+        }
+      })
+      
+
+      return products
+    } catch (error) {
+      throw new RpcException(error)
+    }
 
   }
 
